@@ -95,10 +95,14 @@ public class DefaultWorkloadSuggestionMaker implements WorkloadSuggestionMaker {
             return WorkloadConfiguration.with(currentThreads + maxDiff, 0);
         }
 
+
+        // !! here is the problem i guess
         diff = currentThreads - threadCount;
         if (diff > maxDiff) {
             log.debug("Decreasing to {} is required current thread count is {} max allowed diff is {}", new Object[]{threadCount, currentThreads, maxDiff});
             if ((currentThreads - maxDiff) > 1) {
+                // todo !!! why ' - max DIff ???
+                // why do we need to decrease for maxDiff, if diff < msxDiff
                 return WorkloadConfiguration.with(currentThreads - maxDiff, 0);
             }
             else {
@@ -110,6 +114,8 @@ public class DefaultWorkloadSuggestionMaker implements WorkloadSuggestionMaker {
             return WorkloadConfiguration.with(threadCount, 0);
         }
 
+        // ----------------------------------------------------------------------------------------
+        // very wrong
         // <delay, <timestamp,tps>>
         Map<Integer, Pair<Long, BigDecimal>> delays = threadDelayStats.row(threadCount);
 
@@ -123,7 +129,9 @@ public class DefaultWorkloadSuggestionMaker implements WorkloadSuggestionMaker {
             if ((tpsFromStat.compareTo(BigDecimal.ZERO) > 0) &&
                     (desiredTps.compareTo(BigDecimal.ZERO) > 0)) {
 
+                // todo !! check if statTPC < desireTPS
                 BigDecimal oneSecond = new BigDecimal(TimeUtils.secondsToMillis(1));
+                // i guess this is wrong
                 BigDecimal result = oneSecond.multiply(new BigDecimal(threadCount)).divide(desiredTps, 3, BigDecimal.ROUND_HALF_UP);
                 result = result.subtract(oneSecond.multiply(new BigDecimal(threadCount)).divide(tpsFromStat, 3, BigDecimal.ROUND_HALF_UP));
 
