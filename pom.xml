@@ -40,14 +40,14 @@
 
     <modules>
         <module>dbapi</module>
-        <module>monitoring/agent</module>
+<!--        <module>monitoring/agent</module> -->
         <module>diagnostics</module>
         <module>chassis/</module>
         <module>distribution</module>
-        <module>webclient</module>
+<!--        <module>webclient</module> -->
         <module>archetype</module>
-        <module>test/jagger-test</module>
-        <module>test/test-target</module>
+<!--        <module>test/jagger-test</module>
+        <module>test/test-target</module> -->
         <module>archetype-examples</module>
     </modules>
 

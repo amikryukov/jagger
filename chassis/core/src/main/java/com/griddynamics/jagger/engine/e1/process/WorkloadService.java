@@ -61,6 +61,7 @@ public abstract class WorkloadService extends AbstractExecutionThreadService {
 
     @Override
     protected void run() throws Exception {
+        log.info(toString() + " run()");
         try {
             while (isRunning() && !terminationRequired()) {
                 log.debug("Scenario {} doTransaction called", scenario);
@@ -169,6 +170,17 @@ public abstract class WorkloadService extends AbstractExecutionThreadService {
             return new SharedSamplesCountWorkloadService(Invokers.mergeFlushElements(validatorList, collectorsList), samples);
         }
 
+        public WorkloadService buildInvokeOnDemandWorkloadService() {
+
+            log.info("building invoke on demand workload service");
+            ImmutableList<ScenarioCollector<?, ?, ?>> collectorsList = collectors.build();
+            ImmutableList<Validator> validatorList = validators.build();
+            ImmutableList<InvocationListener> listenersList = listeners.build();
+
+            scenario.setInvocationListener(Invokers.validateListener(validatorList, (Iterable) collectorsList, (List)listenersList));
+            return new InvokeOnDemandWorkloadService(Invokers.mergeFlushElements(validatorList, collectorsList));
+        }
+
         private class InfiniteWorkloadService extends WorkloadService {
             
             private InfiniteWorkloadService(ImmutableList<? extends Flushable> list) {
@@ -218,6 +230,38 @@ public abstract class WorkloadService extends AbstractExecutionThreadService {
                         return true;
                     }
                 }
+            }
+        }
+
+        private class InvokeOnDemandWorkloadService extends WorkloadService {
+
+            private InvokeOnDemandWorkloadService(ImmutableList<? extends Flushable> list) {
+                super(WorkloadServiceBuilder.this.executor, WorkloadServiceBuilder.this.scenario, list);
+            }
+
+
+            @Override
+            protected void triggerShutdown() {
+                log.error("### " + this.toString() + " - triggerShutdown");
+                super.triggerShutdown();
+                try {
+                    for (Flushable collector : super.collectors) {
+                        collector.flush();
+                    }
+                } catch (Throwable error) {
+                    log.error("Error during flushing", error);
+                }
+            }
+
+            @Override
+            protected void shutDown() throws Exception {
+                log.info("do nothing on shutdown");
+                // do nothing after thread is finished
+            }
+
+            @Override
+            protected boolean terminationRequired() {
+                return getFinishedSamples() >= 1;
             }
         }
     }

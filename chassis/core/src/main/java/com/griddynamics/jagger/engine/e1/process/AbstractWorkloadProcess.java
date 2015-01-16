@@ -114,7 +114,7 @@ public abstract class AbstractWorkloadProcess implements WorkloadProcess {
         log.debug("Configuration change request received");
 
         changeConfigurationBeforeStats(configuration);
-
+// do not remove working threads
         for (Iterator<WorkloadService> it = threads.iterator(); it.hasNext(); ){
             WorkloadService workloadService = it.next();
             if (workloadService.state().equals(Service.State.TERMINATED)) {
@@ -154,15 +154,37 @@ public abstract class AbstractWorkloadProcess implements WorkloadProcess {
         return new WorkloadStatus(started, finished, runningThreads);
     }
 
-
     /**
      * Common method to add new workload service with all listeners.
      */
     protected void startNewThread() {
 
+
+        log.info("startInvoke method");
+        for (WorkloadService thread : threads) {
+            log.error(thread.state().toString());
+            if (!thread.isRunning()) {
+                log.info("there is thread that is not running. Try to start invoke with it");
+                // we can invoke it
+                log.debug("Starting workload");
+                Future<Service.State> future = thread.start();
+                Service.State state = Futures.get(future, timeoutsConfiguration.getWorkloadStartTimeout());
+                log.info("Workload thread with is started with state {}", state);
+
+                return;
+            }
+        }
+
+
+        log.info("trying to start new thread");
+
         if (executor.getActiveCount() >= executor.getMaximumPoolSize()) {
             log.warn("Thread pool(size={}) is full. Skip adding new thread.", executor.getPoolSize());
+            return;
         }
+
+
+
         log.debug("Adding new workload thread");
         Scenario<Object, Object, Object> scenario = command.getScenarioFactory().get(context);
 
@@ -193,6 +215,7 @@ public abstract class AbstractWorkloadProcess implements WorkloadProcess {
         Service.State state = Futures.get(future, timeoutsConfiguration.getWorkloadStartTimeout());
         log.debug("Workload thread with is started with state {}", state);
         threads.add(thread);
+        log.info("new thread was added to workload process");
     }
 
 

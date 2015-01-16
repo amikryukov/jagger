@@ -305,7 +305,7 @@
             <!--RumpUpTps-->
                 <test-group id="sleep-service-50-150ms-600-rump-up-tps-5-min">
                     <test testDescription="sleep-service-50-150ms">
-                        <load xsi:type="load-tps" warmUpTime="100s" value="600" tickInterval="500"/>
+                        <load xsi:type="load-tps" warmUpTime="100s" value="600" tickInterval="500" maxThreadNumber=""/>
                         <termination xsi:type="termination-duration" duration="5m"/>
                     </test>
                 </test-group>
