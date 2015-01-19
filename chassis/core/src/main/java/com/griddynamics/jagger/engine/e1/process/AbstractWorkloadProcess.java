@@ -21,7 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -115,15 +114,6 @@ public abstract class AbstractWorkloadProcess implements WorkloadProcess {
 
         changeConfigurationBeforeStats(configuration);
 
-        for (Iterator<WorkloadService> it = threads.iterator(); it.hasNext(); ){
-            WorkloadService workloadService = it.next();
-            if (workloadService.state().equals(Service.State.TERMINATED)) {
-                samplesCountStartedFromTerminatedThreads += workloadService.getStartedSamples();
-                samplesCountFinishedFromTerminatedThreads += workloadService.getFinishedSamples();
-                it.remove();
-            }
-        }
-
         changeConfigurationAfterStats(configuration);
     }
 
@@ -154,15 +144,28 @@ public abstract class AbstractWorkloadProcess implements WorkloadProcess {
         return new WorkloadStatus(started, finished, runningThreads);
     }
 
-
     /**
      * Common method to add new workload service with all listeners.
      */
     protected void startNewThread() {
 
+
+        for (WorkloadService thread : threads) {
+            if (Service.State.TERMINATED == thread.state()) {
+                log.debug("Starting workload");
+                Future<Service.State> future = thread.start();
+                Service.State state = Futures.get(future, timeoutsConfiguration.getWorkloadStartTimeout());
+                log.debug("Workload thread with is started with state {}", state);
+                return;
+            }
+        }
+
         if (executor.getActiveCount() >= executor.getMaximumPoolSize()) {
             log.warn("Thread pool(size={}) is full. Skip adding new thread.", executor.getPoolSize());
+            return;
         }
+
+
         log.debug("Adding new workload thread");
         Scenario<Object, Object, Object> scenario = command.getScenarioFactory().get(context);
 
@@ -181,7 +184,7 @@ public abstract class AbstractWorkloadProcess implements WorkloadProcess {
             validators.add(provider.provide(sessionId, command.getTaskId(), context));
         }
 
-        WorkloadService.WorkloadServiceBuilder builder = WorkloadService
+        AbstractWorkloadService.WorkloadServiceBuilder builder = AbstractWorkloadService
                 .builder(scenario)
                 .addCollectors(collectors)
                 .addValidators(validators)
@@ -201,5 +204,5 @@ public abstract class AbstractWorkloadProcess implements WorkloadProcess {
      *
      * @return workload service to be started while adding new thread.
      */
-    protected abstract WorkloadService getService(WorkloadService.WorkloadServiceBuilder serviceBuilder);
+    protected abstract WorkloadService getService(AbstractWorkloadService.WorkloadServiceBuilder serviceBuilder);
 }

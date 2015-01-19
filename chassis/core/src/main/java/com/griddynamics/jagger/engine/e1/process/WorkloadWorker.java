@@ -211,7 +211,7 @@ public class WorkloadWorker extends ConfigurableWorker {
                         .setNameFormat("workload-calibration-thread %d")
                         .setUncaughtExceptionHandler(ExceptionLogger.INSTANCE)
                         .build());
-                WorkloadService calibrationThread = WorkloadService
+                WorkloadService calibrationThread = AbstractWorkloadService
                         .builder(scenario)
                         .addCollector(calibrationInfoCollector)
                         .useExecutor(executor)

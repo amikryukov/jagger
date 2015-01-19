@@ -71,8 +71,8 @@ public class PeriodWorkloadProcess extends AbstractWorkloadProcess {
     }
 
     @Override
-    protected WorkloadService getService(WorkloadService.WorkloadServiceBuilder serviceBuilder) {
+    protected WorkloadService getService(AbstractWorkloadService.WorkloadServiceBuilder serviceBuilder) {
         // return workload service that should execute 1 sample
-        return serviceBuilder.buildServiceWithPredefinedSamples(1);
+        return serviceBuilder.buildInvokeOnDemandWorkloadService();
     }
 }

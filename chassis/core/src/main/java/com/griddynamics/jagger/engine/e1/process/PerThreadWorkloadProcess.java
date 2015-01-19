@@ -198,7 +198,7 @@ public class PerThreadWorkloadProcess implements WorkloadProcess {
             validators.add(provider.provide(sessionId, command.getTaskId(), context));
         }
 
-        WorkloadService.WorkloadServiceBuilder builder = WorkloadService
+        AbstractWorkloadService.WorkloadServiceBuilder builder = AbstractWorkloadService
                 .builder(scenario)
                 .addCollectors(collectors)
                 .addValidators(validators)
