@@ -241,6 +241,67 @@
     </test-description>
 
 
+
+    <beans:bean id="endpointsIterable-sleep-50-1500ms" class="java.util.LinkedList">
+        <beans:constructor-arg value="#{endpointConfigurator.getEndpoints('/sleep/50-1500')}"/>
+    </beans:bean>
+
+    <test-description id="sleep-service-50-1500ms" name="sleep-service-50-1500ms" version="1">
+
+        <info-collectors>
+            <validator xsi:type="validator-not-null-response"/>
+
+            <validator xsi:type="validator-custom" validator="metric.TrueValidator"/>
+
+            <!--Success rate metrics-->
+            <!-- begin: following section is used for docu generation - metric-success-rate -->
+
+            <!--    Example #1: Success rate metric with default aggregators
+                    plotData = true => metric vs time data will be saved (displayed in WebUI and PDF report)
+                    saveSummary = true => summary value for summary page will be not saved -->
+            <metric xsi:type="metric-success-rate" plotData="true" saveSummary="false"/>
+
+
+
+            <!--    Example #2: Success rate metric with custom name and default aggregators -->
+            <metric id="CustomNameSuccessRate1" xsi:type="metric-success-rate" plotData="true" saveSummary="false"/>
+
+
+
+            <!--    Example #3: Success rate metric with custom name and custom aggregators
+                    With this setup success rate will be aggregated on interval like on picture below -->
+            <metric id="CustomSuccessRatePlot1" xsi:type="metric-success-rate" plotData="true" saveSummary="false">
+                <metric-aggregator xsi:type="metric-aggregator-avg"/>
+            </metric>
+
+            <!-- end: following section is used for docu generation - metric-success-rate -->
+
+            <!-- begin: following section is used for docu generation - standard aggregator usage -->
+            <metric id="CustomSuccessRateSummary1" xsi:type="metric-success-rate" saveSummary="true">
+                <metric-aggregator xsi:type="metric-aggregator-avg"/>
+            </metric>
+            <!-- end: following section is used for docu generation - standard aggregator usage -->
+
+
+
+
+        </info-collectors>
+
+        <scenario  xsi:type="scenario-query-pool">
+            <query-distributor xsi:type="query-distributor-round-robin"/>
+            <invoker xsi:type="invoker-http"/>
+
+            <endpoint-provider xsi:type="endpoint-provider-ref" ref="endpointsIterable-sleep-50-150ms"/>
+
+            <query-provider xsi:type="query-provider-list">
+                <query-http>emptyTestQuery</query-http>
+            </query-provider>
+
+        </scenario>
+
+    </test-description>
+
+
     <beans:bean id="endpointsIterable-pulse-service-30000-500" class="java.util.LinkedList">
         <beans:constructor-arg value="#{endpointConfigurator.getEndpoints('/sleep/pulse/30000/500')}"/>
     </beans:bean>
